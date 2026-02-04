@@ -1,0 +1,24 @@
+{
+  "name": "bafcoautomation",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+"scripts": {
+  "test:report": "npx playwright test && npx monocart show-report reports/monocart/index.html"
+}
+
+
+,
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "devDependencies": {
+    "@playwright/test": "^1.58.1",
+    "@types/node": "^25.2.0",
+    "monocart-reporter": "^2.9.23"
+  },
+  "dependencies": {
+    "dotenv": "^17.2.3"
+  }
+}
