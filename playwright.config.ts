@@ -22,14 +22,21 @@ fs.mkdirSync(historyDir, { recursive: true });
 export default defineConfig({
   testDir: './tests',
 
+  // ⬅️ GLOBAL TEST TIMEOUT
+  timeout: 90_000, // 90 seconds per test
+
+  // ⬅️ EXPECT / ASSERTION TIMEOUT
+  expect: {
+    timeout: 30_000, // waits for grids, uploads, async UI
+  },
+
   reporter: [
     ['monocart-reporter', {
       name: `BAFCO Automation Report (${year}-${month}-${day} ${time})`,
       outputFile: `${historyDir}/index.html`,
       showSteps: true,
-      showHooks: false,       // hide before/after hooks
-      showAttachments: true  // show screenshots & videos
-      
+      showHooks: false,
+      showAttachments: true
     }]
   ],
 
@@ -37,11 +44,20 @@ export default defineConfig({
     baseURL: process.env.BASE_URL,
     headless: false,
     browserName: 'chromium',
-    viewport: null,   // real window
+    viewport: null,
+
+    // ACTION TIMEOUT (click, fill, upload)
+    actionTimeout: 60_000,
+
+    // NAVIGATION TIMEOUT (redirects after save)
+    navigationTimeout: 90_000,
+
     launchOptions: {
-      args: ['--start-maximized']   // maximize browser
+      args: ['--start-maximized']
     },
+
     screenshot: 'only-on-failure',
-    video: 'retain-on-failure'
+    video: 'retain-on-failure',
+    trace: 'on-first-retry'
   }
 });

@@ -1,7 +1,13 @@
 export const loginData = {
   booking: {
-    username: process.env.BOOKING_USERNAME!,
-    password: process.env.BOOKING_PASSWORD!
+    valid: {
+      username: process.env.BOOKING_USERNAME!,
+      password: process.env.BOOKING_PASSWORD!
+    },
+    invalid: {
+      username: 'wrong@test.com',
+      password: 'wrong123'
+    }
   },
   export: {
     username: process.env.EXPORT_USERNAME!,
