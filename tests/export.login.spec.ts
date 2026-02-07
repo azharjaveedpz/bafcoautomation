@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { LoginPage } from '../pages/ui/LoginPage';
+import { LoginPage } from '../pages/ui/login.page';
 import { loginData } from '../data/ui/login.data';
 
 test('UI Login Test - BAFCO (Export)', async ({ page }) => {
