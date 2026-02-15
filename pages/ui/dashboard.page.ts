@@ -13,12 +13,25 @@ export class DashboardPage {
   );
 }*/
 
-
-
-
   get croMenu(): Locator {
     return this.page.locator('a[href="/cros"]');
   }
+get dashboardGroup(): Locator {
+  return this.page.getByRole('navigation', { name: 'Dashboard' });
+}
+
+ get dashboardMenu(): Locator {
+  return this.page.getByRole('button', { name: 'Toggle Dashboard' });
+}
+get dashboardExportMenu(): Locator {
+  return this.dashboardGroup.getByLabel('Toggle Export');
+}
+
+get bookingMenu(): Locator {
+  return this.page.locator('a[href="/bookingDashboard"]');
+}
+
+
 
   // ---------- Actions ----------
 
@@ -59,4 +72,41 @@ export class DashboardPage {
     await this.openExportMenu();
     await this.clickCRO();
   }
+
+  async openDashboardMenu() {
+
+  const expanded = await this.dashboardMenu.getAttribute('aria-expanded');
+  if (expanded === 'true') return;
+
+  await this.dashboardMenu.click();
+
+  await expect(this.dashboardMenu).toHaveAttribute(
+    'aria-expanded',
+    'true',
+    { timeout: 10000 }
+  );
+}
+async openDashboardExportMenu() {
+
+  const expanded = await this.dashboardExportMenu.getAttribute('aria-expanded');
+  if (expanded === 'true') return;
+
+  await this.dashboardExportMenu.click();
+
+  await expect(this.dashboardExportMenu).toBeVisible({ timeout: 10000 });
+}
+
+async clickBooking() {
+  await expect(this.bookingMenu).toBeVisible({ timeout: 10000 });
+  await this.bookingMenu.click();
+}
+
+async openDashboardAndClickBooking() {
+ // await this.openDashboardMenu();
+  await this.openDashboardExportMenu();
+  await this.clickBooking();
+}
+
+
+
 }
