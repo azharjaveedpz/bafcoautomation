@@ -183,15 +183,39 @@ get createdByCell() {
 get statusCell() {
   return this.bookingGridRow.locator('td[data-col-index="10"]');
 }
+get duplicateCROErrorMessage() {
+  return this.page.locator(
+    'div.k-dialog-content:has-text("CRO with same Booking No already exists")'
+  );
+}
+
+get dialogMessage() {
+  return this.page.locator(
+    '.k-window.k-dialog .k-dialog-title'
+  );
+}
+get dialogTitle() {
+  return this.page.locator('.k-window.k-dialog:visible .k-dialog-title');
+}
+
+get dialogOkButton() {
+  return this.page.locator('.k-window.k-dialog:visible button:has-text("OK")');
+}
+
+
 
   // ---------- Actions ----------
 
   async openLeftMenu() {
-    await this.menuIcon.click();
 
-    await expect(this.leftDrawerOpen)
-      .toBeVisible({ timeout: 10000 });
-  }
+  // If menu already open → skip
+  if (await this.exportMenu.isVisible()) return;
+
+  await this.menuIcon.click();
+
+  // Wait until menu becomes visible
+  await expect(this.exportMenu).toBeVisible({ timeout: 10000 });
+}
 
   async openExportMenu() {
     await expect(this.exportMenu)
@@ -211,8 +235,10 @@ get statusCell() {
 
   // ---------- Convenience ----------
 
+  
+
 async openExportAndClickCRO() {
-  await this.openLeftMenu();
+ // await this.openLeftMenu();
   await this.openExportMenu();
   await this.clickCRO();
 
@@ -425,7 +451,7 @@ normalizeDate(dateStr: string): string {
     dec: '12',
   };
 
-  // ✅ Case 1: Already numeric without separators → DDMMYYYY
+  // Case 1: Already numeric without separators → DDMMYYYY
   if (/^\d{8}$/.test(value)) {
     const day = value.substring(0, 2);
     const month = value.substring(2, 4);
@@ -433,7 +459,7 @@ normalizeDate(dateStr: string): string {
     return `${year}${month}${day}`;
   }
 
-  // ✅ Case 2: 07/Feb/26 or 07-Feb-26
+  // Case 2: 07/Feb/26 or 07-Feb-26
   const alphaMatch = value.match(/(\d{1,2})[\/\-](\w{3})[\/\-](\d{2,4})/i);
   if (alphaMatch) {
     const day = alphaMatch[1].padStart(2, '0');
@@ -443,7 +469,7 @@ normalizeDate(dateStr: string): string {
     return `${year}${month}${day}`;
   }
 
-  // ✅ Case 3: 07/02/26 or 7/2/2026
+  //  Case 3: 07/02/26 or 7/2/2026
   const numericMatch = value.match(/(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})/);
   if (numericMatch) {
     const day = numericMatch[1].padStart(2, '0');
@@ -522,4 +548,30 @@ async waitForBookingListingPage() {
   ).toBeVisible({ timeout: 60000 });
 }
 
+async getDialogMessageText() {
+  return await this.dialogMessage.innerText();
+}
+async handleAnyPopup() {
+
+  if (await this.dialogTitle.isVisible({ timeout: 5000 })) {
+
+    const message = await this.dialogTitle.innerText();
+
+    console.log('Popup Message:', message);
+
+   
+
+    await this.dialogOkButton.click();
+  }
+}
+async verifyBookingPage() {
+  await expect(this.newButton).toBeVisible({ timeout: 10000 });
+
+  await this.newButton.click();
+
+  await expect(this.newCROText)
+    .toBeVisible({ timeout: 10000 });
+
+  await this.bookingNumberInput.click();
+}
 }
