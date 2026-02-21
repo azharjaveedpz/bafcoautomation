@@ -498,7 +498,7 @@ await test.step('Click Update CRO Status button', async () => {
 });
 await test.step('Verify popup and customer name', async () => {
 
-  const details = await sopage.verifyPopupAndCustomerName();
+  const details = await sopage.verifyCustomerNameAndCreateNewJob();
 
   await test.info().attach('Form Values', {
     body: details,
@@ -580,7 +580,9 @@ test.only('Create CRO and map to SO - End to End Flow', async ({ page }) => {
   let todayETA: string;
 
   // ================= LOGIN =================
+  //
   await test.step('Login flow', async () => {
+    //await page.reload();
     await loginPage.login(
       loginData.booking.valid.username,
       loginData.booking.valid.password
@@ -679,7 +681,7 @@ test.only('Create CRO and map to SO - End to End Flow', async ({ page }) => {
   // ================= POPUP VALIDATION =================
   await test.step('Verify popup and customer name', async () => {
 
-    const details = await sopage.verifyPopupAndCustomerName();
+    const details = await sopage.verifyCustomerNameAndCreateNewJob();
 
     await test.info().attach('Popup Details', {
       body: details,

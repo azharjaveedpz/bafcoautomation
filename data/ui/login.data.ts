@@ -13,8 +13,8 @@ export const loginData = {
     username: process.env.EXPORT_USERNAME!,
     password: process.env.EXPORT_PASSWORD!
   },
-  sf: {
-    username: process.env.SF_USERNAME!,
-    password: process.env.SF_PASSWORD!
+  si: {
+    username: process.env.SI_USERNAME!,
+    password: process.env.SI_PASSWORD!
   }
 };

@@ -320,7 +320,7 @@ async clickUpdateCROStatus() {
   console.log('Clicked Update CRO Status button');
 }
 
-async verifyPopupAndCustomerName(): Promise<string> {
+async verifyCustomerNameAndCreateNewJob(): Promise<string> {
 
   // ===== Verify popup opened =====
   await this.popupMessage.waitFor({
@@ -383,6 +383,10 @@ async verifyEmailSentPopupAndClickOK(): Promise<string> {
 
   expect(popupText).toBe('Email sent');
 
+  await this.emailSentOkButton.waitFor({
+    state: 'visible',
+    timeout: 60000
+  });
   // Click OK
   await this.emailSentOkButton.click();
 
@@ -404,6 +408,10 @@ async handleEmailResultPopup(): Promise<string> {
   console.log(`Email Result Popup: ${message}`);
 
   expect(message).not.toBe('');
+  await this.emailSentOkButton.click();
+
+  console.log('Clicked OK button');
+  
 
   // click OK of latest popup
   await this.latestDialog
@@ -411,6 +419,7 @@ async handleEmailResultPopup(): Promise<string> {
     .click();
 
   return `Popup Message: ${message}`;
+  
 }
 
 
