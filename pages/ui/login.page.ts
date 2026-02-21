@@ -24,7 +24,12 @@ export class LoginPage {
   get bookingDashboardHeader(): Locator {
     return this.page.getByRole('heading', { name: 'Booking Dashboard' });
   }
-
+ get exportDashboardHeader(): Locator {
+    return this.page.getByRole('heading', { name: 'Export Dashboard' });
+  }
+  get siDashboardHeader(): Locator {
+    return this.page.getByRole('heading', { name: 'SI Dashboard' });
+  }
   // ---------- Actions ----------
 
   async open() {
@@ -72,5 +77,12 @@ export class LoginPage {
 
   async assertLoginSuccess() {
     await expect(this.bookingDashboardHeader).toBeVisible();
+  }
+
+  async assertExportLoginSuccess() {
+    await expect(this.exportDashboardHeader).toBeVisible();
+  }
+  async assertSILoginSuccess() {
+    await expect(this.siDashboardHeader).toBeVisible();
   }
 }

@@ -44,7 +44,7 @@ test.describe('Export - CRO & SRO Scenarios', () => {
     const loginPage = new LoginPage(page);
 
     // launch app
-    await page.goto('/');
+    await page.goto('/login');
 
     // refresh after launch
     await page.reload({ waitUntil: 'networkidle' });
