@@ -105,7 +105,9 @@ get pdfViewerLayer() {
 get pdfCloseButton() {
   return this.page.locator('button[title="Close"]');
 }
-
+get previewCloseButton() {
+  return this.page.locator('button[title="Close"]');
+}
 // Remarks tab
 get remarksTab() {
   return this.page.getByRole('tab', { name: /Remarks/ });
@@ -119,6 +121,12 @@ get remarkFileInput() {
 // Save button
 get saveButton() {
   return this.page.getByRole('button', { name: 'Save' });
+}
+
+get submitSIButton(): Locator {
+  return this.page.locator(
+    'button.k-button-outline-success:has-text("Save")'
+  );
 }
 
 // Latest saved remark row
@@ -159,6 +167,62 @@ get firstRowContainerType() {
 get headerContainerTypes() {
   return this.page.locator('.qty_sec .d-flex.flex-column b');
 }
+
+// Upload Inputs
+get siFileUpload(): Locator {
+  return this.page.locator('input[name="fileSIAcknowledgment"]');
+}
+
+get vgmFileUpload(): Locator {
+  return this.page.locator('input[name="fileVGMAcknowledgment"]').first();
+}
+
+get vgmFileUploadSecond(): Locator {
+  return this.page.locator('input[name="fileVGMAcknowledgment"]').nth(1);
+}
+
+// Checkbox
+get vgmIncludedCheckbox(): Locator {
+  return this.page.locator('#chkIsVGM').first();
+}
+
+get uploadedDocumentsSection(): Locator {
+  return this.page.locator('h5:has-text("Uploaded Documents")').locator('xpath=ancestor::div[contains(@class,"mud-paper")]');
+}
+get uploadedDocumentItems(): Locator {
+  return this.uploadedDocumentsSection.locator('ul > li');
+}
+get firstPreviewButton(): Locator {
+  return this.uploadedDocumentItems.first().getByRole('button', { name: 'Preview' });
+}
+get IncludedCheckbox(): Locator {
+  return this.page.getByLabel('Included above');
+}
+get siDetailsTab(): Locator {
+  return this.page.getByRole('tab', { name: 'SI Details' });
+}
+
+get siSubmittedPopupTitle(): Locator {
+  return this.page.locator('.k-dialog-title', {
+    hasText: 'Success'
+  });
+}
+get siSubmittedPopupMessage(): Locator {
+  return this.page.locator('.k-dialog-content', {
+    hasText: 'moved to Submitted'
+  });
+}
+
+get okButton(): Locator {
+  return this.page
+    .locator('.k-dialog:visible')
+    .getByRole('button', { name: 'OK' });
+}
+
+get firstRowAssigneeCell(): Locator {
+  return this.firstRow.locator('td[data-col-index="6"]');
+}
+
 
   // ---------- Actions ----------
 
@@ -503,5 +567,222 @@ result.navigation = {
 };
 await this.firstRowCheckbox.check();
   return result;
+}
+
+
+async getSIInprogressJobDetails(): Promise<any> {
+
+    await this.jobId.waitFor({ state: 'visible' });
+
+    const details = {
+      jobId: (await this.jobId.innerText()).split('\n')[0].trim(),
+      customer: await this.customerName.innerText(),
+      status: await this.status.innerText(),
+      bookingNumber: await this.bookingNumber.innerText(),
+      pol: await this.pol.innerText(),
+      pod: await this.pod.innerText(),
+      handledBy: await this.handledBy.innerText(),
+     
+    };
+
+    console.log('===== JOB DETAILS =====');
+    console.log(details);
+
+    // Validate status
+    expect(details.status).toBe('In Progress');
+
+    return details;
+  }
+
+
+  async acknowledgeSIInprogressDetails(relativePath: string): Promise<any> {
+
+  const result: any = {};
+  const filePath = path.join(process.cwd(), relativePath);
+
+  if (!fs.existsSync(filePath)) {
+    throw new Error(`File not found: ${filePath}`);
+  }
+
+  const fileName = path.basename(filePath);
+
+  // ================= SHIPPING APPLICATION =================
+  await expect(this.shippingApplicationPanel)
+    .toBeVisible({ timeout: 30000 });
+
+  await expect(this.shippingAppStatusInput)
+    .toHaveValue('In Progress');
+
+  const dynamicText =
+    (await this.dynamicStatusText.first().innerText()).trim();
+
+  result.shippingApplication = {
+    status: 'In Progress',
+    dynamicStatus: dynamicText
+  };
+
+  // ================= VIEW DOCUMENT =================
+  const docName =
+    (await this.firstDocumentName.innerText()).trim();
+
+  await this.firstRowEyeButton.click();
+  await expect(this.pdfCloseButton)
+    .toBeVisible({ timeout: 60000 });
+
+  await this.pdfCloseButton.click();
+  await expect(this.pdfCloseButton).toBeHidden();
+
+  result.document = {
+    documentName: docName,
+    status: 'Viewed and Closed Successfully'
+  };
+
+  // ================= SI & VGM UPLOAD =================
+  await this.siFileUpload.setInputFiles(filePath);
+  await this.vgmFileUpload.setInputFiles(filePath);
+
+  await expect(this.uploadedDocumentItems.first())
+    .toBeVisible({ timeout: 60000 });
+
+  // Check Included Above (only if not already checked)
+  /*if (!(await this.vgmIncludedCheckbox.isChecked())) {
+    await this.vgmIncludedCheckbox.check();
+  }*/
+
+  const uploadedDocs =
+    (await this.uploadedDocumentItems.allInnerTexts())
+      .map(text => text.replace('Preview', '').trim());
+
+  // Preview first uploaded file
+  await this.uploadedDocumentItems.first()
+    .getByRole('button', { name: 'Preview' })
+    .click();
+
+  await expect(this.pdfCloseButton)
+    .toBeVisible({ timeout: 60000 });
+
+  await this.pdfCloseButton.click();
+  await expect(this.pdfCloseButton).toBeHidden();
+
+  result.siVgm = {
+    siFile: fileName,
+    vgmFile: fileName,
+    uploadedDocs
+  };
+
+  // ================= REMARK UPLOAD =================
+  await this.remarksTab.click();
+
+  await expect(this.remarkEditor)
+    .toBeVisible({ timeout: 30000 });
+
+  await this.remarkEditor.fill('tst automation');
+  await this.page.keyboard.press('Tab');
+
+  await this.remarkFileInput.setInputFiles(filePath);
+
+  await expect(this.saveButton).toBeEnabled();
+  await this.saveButton.click();
+
+  await expect(this.latestRemarkRow)
+    .toBeVisible({ timeout: 60000 });
+
+  const user =
+    (await this.remarkUserName.innerText()).trim();
+  const message =
+    (await this.remarkMessage.innerText()).trim();
+  const date =
+    (await this.remarkDate.innerText()).trim();
+
+  result.remark = {
+    uploadedFile: fileName,
+    user,
+    message,
+    date
+  };
+
+  // ================= SUBMIT SI =================
+  await expect(this.siDetailsTab)
+    .toBeVisible({ timeout: 30000 });
+
+  await this.siDetailsTab.click();
+
+  await expect(this.submitSIButton).toBeEnabled();
+  await this.submitSIButton.click();
+
+  
+
+  console.log('SI submitted successfully');
+
+  await expect(this.siSubmittedPopupMessage)
+  .toBeVisible({ timeout: 60000 });
+
+const popupText =
+  (await this.siSubmittedPopupMessage.textContent())?.trim() || '';
+
+console.log('Popup message:', popupText);
+
+// Use case-insensitive match (safer)
+expect(popupText.toLowerCase())
+  .toContain('moved to submitted');
+
+await expect(this.okButton)
+  .toBeVisible({ timeout: 60000 });
+
+await this.okButton.click();
+
+await expect(this.siSubmittedPopupMessage)
+  .toBeHidden();
+
+result.submission = {
+  popupMessage: popupText
+};
+
+  // ================= NAVIGATION BACK =================
+  await this.page.goBack();
+  //await this.page.waitForLoadState('networkidle');
+
+  await this.firstRowCheckbox.check();
+
+  result.navigation = {
+    backAction: 'Browser goBack executed successfully'
+  };
+
+  return result;
+}
+
+async validateAndPrintAssignee(): Promise<string> {
+
+  await expect(this.firstRow).toBeVisible();
+
+  // Find Assigned To header
+  const header = this.page.locator(
+    '[role="columnheader"]',
+    { hasText: 'Assigned To' }
+  );
+
+  await expect(header).toBeVisible();
+
+  const columnIndex =
+    await header.getAttribute('data-col-index');
+
+  if (!columnIndex) {
+    throw new Error('Assigned To column index not found');
+  }
+
+  // Get corresponding cell from first row
+  const assigneeCell =
+    this.firstRow.locator(
+      `td[data-col-index="${columnIndex}"]`
+    );
+
+  const assignee =
+    (await assigneeCell.innerText()).trim();
+
+  console.log(`Detected Assignee: "${assignee}"`);
+
+  expect(assignee).not.toBe('');
+
+  return assignee;
 }
   }
