@@ -568,7 +568,7 @@ test.only('Create CRO and map to SO - End to End Flow', async ({ page }) => {
     shippingLine: 'MSC',
     pol: 'JEDDAH',
     pod: 'ROTTERDAM',
-    containerType: 'M',
+    containerType: '20',
     vessel: 'MSC',
     quantity: 4,
     commercial: 'SAFDARALI',
