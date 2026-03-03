@@ -27,12 +27,8 @@ get SIRejected(): Locator {
 
 // SI Submitted
 get SISubmitted(): Locator {
-  return this.page.locator('.card_info', {
-    has: this.page.locator('h3', { hasText: 'SI Submitted' })
-  });
+  return this.page.locator('a:has(h3:has-text("SI Submitted"))');
 }
-
-
 
 
 
@@ -44,13 +40,13 @@ async clickCardAndValidate(
   card: Locator,
   expectedUrl: RegExp
 ) {
+  await card.waitFor({ state: 'visible' });
 
-  await card.locator('a').first().click();
+  await card.click();   
 
   await expect(this.page).toHaveURL(expectedUrl);
 
   const currentUrl = this.page.url();
-
   console.log(`Navigated URL: ${currentUrl}`);
 
   return currentUrl;

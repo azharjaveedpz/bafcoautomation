@@ -103,7 +103,11 @@ get siStatusInput(): Locator {
     .locator('xpath=../following-sibling::div[1]//input');
 }
 
-
+get assignToInput(): Locator {
+  return this.page
+    .locator('label:has-text("Assigned To")')
+    .locator('xpath=../following-sibling::div[1]//input');
+}
 
 // Assigned To
 get assignedToInput(): Locator {
@@ -118,6 +122,60 @@ get movedDialogMessage(): Locator {
 get movedDialogOkButton(): Locator {
   return this.page.locator('.k-dialog-actions button:has-text("OK")');
 }
+
+// Knowledge Base Popup Container
+get knowledgePopup(): Locator {
+  return this.page.locator('div.k-window-content')
+    .filter({ hasText: 'Knowledge Base' });
+}
+
+// Acknowledge Button inside popup
+get acknowledgeButton(): Locator {
+  return this.knowledgePopup
+    .getByRole('button', { name: 'Acknowledge' });
+}
+
+get firstDocumentName() {
+  return this.page.locator('tbody tr.k-table-row td[data-col-index="1"]').first();
+}
+get firstRowEyeButton() {
+  return this.page
+    .locator('tbody tr.k-table-row')
+    .first()
+    .locator('td[data-col-index="4"] button')
+    .nth(1); // second button = eye
+}
+get pdfViewerLayer() {
+  return this.page.locator('.k-text-layer');
+}
+get pdfCloseButton() {
+  return this.page.locator('button[title="Close"]');
+}
+
+get approveSIAckButton(): Locator {
+    return this.page.locator('button:has-text("Approve SI Acknowledgment")');
+  }
+
+   get siTeamButton(): Locator {
+    return this.page.locator('button:has-text("SI Team")');
+  }
+
+  get manifestUploadInput(): Locator {
+    return this.page.locator('#fileManifest');
+  }
+
+  get draftBlUploadInput(): Locator {
+    return this.page.locator('#fileDraftBl');
+  }
+
+  get blNumberInput(): Locator {
+    return this.page.locator('#txtJobPickup');
+  }
+
+  get saveButton(): Locator {
+    return this.page.locator('button:has-text("Save")');
+  }
+
 
   // ---------- Actions ----------
 
@@ -180,6 +238,47 @@ async clickJobIdAndPrint() {
 }
 
 async validateAndPrintJobHeaderDetails() {
+
+  await this.jobDetailsSection.waitFor({
+    state: 'visible',
+    timeout: 60000
+  });
+
+  const data: Record<string, string> = {};
+
+  // CRO Number
+  data['CRO No'] = (await this.croNumber.innerText()).trim();
+
+  // Customer
+  data['Customer'] = (await this.customerName.innerText()).trim();
+
+  // Status
+  const status = (await this.jobStatus.innerText()).trim();
+  data['Status'] = status;
+
+  // VALIDATION
+  await expect(this.jobStatus).toHaveText('In Progress', {
+    timeout: 60000
+  });
+  // Info values (BK#, POD etc.)
+  const info = this.jobInfoValues;
+  const count = await info.count();
+
+  for (let i = 0; i < count; i++) {
+    const value = (await info.nth(i).innerText()).trim();
+    data[`Info_${i}`] = value;
+  }
+
+  console.log('----- Job Header Details -----');
+
+  for (const key in data) {
+    console.log(`${key} : ${data[key]}`);
+  }
+
+  return data;
+}
+
+async validateAndPrintSubmittedJobHeaderDetails() {
 
   await this.jobDetailsSection.waitFor({
     state: 'visible',
@@ -363,6 +462,46 @@ async validateAndPrintStatuses(): Promise<Record<string, string>> {
   return data;
 }
 
+async getSIStatuses(): Promise<Record<string, string>> {
+  await this.manifestStatusInput.waitFor({ state: 'visible', timeout: 60000 });
+  await this.draftBlStatusInput.waitFor({ state: 'visible', timeout: 60000 });
+   await expect(this.siStatusInput).not.toHaveValue('', { timeout: 60000 });
+      await expect(this.assignToInput).not.toHaveValue('', { timeout: 60000 });
+
+  return {
+    'Manifest Status': (await this.manifestStatusInput.inputValue()).trim(),
+    'Draft BL Status': (await this.draftBlStatusInput.inputValue()).trim(),
+    'SI Status': (await this.siStatusInput.inputValue()).trim(),
+    'Assigned To': (await this.assignToInput.inputValue()).trim(),
+  };
+}
+
+ async viewAndCloseDocument(): Promise<any> {
+
+  // Get document name
+  const docName = (await this.firstDocumentName.innerText()).trim();
+  console.log('Document Name:', docName);
+
+  // Click eye icon
+  await this.firstRowEyeButton.click();
+
+  // Wait for PDF viewer
+  await this.pdfViewerLayer.first().waitFor({ state: 'visible' });
+
+  console.log('Document viewed successfully');
+
+  // Close document
+  await this.pdfCloseButton.click();
+
+  //await this.pdfViewerLayer.waitFor({ state: 'hidden' });
+
+  console.log('Document closed successfully');
+
+  return {
+    documentName: docName,
+    status: 'Viewed and Closed Successfully'
+  };
+}
 async handleMovedDialog(): Promise<string> {
 
   await expect(this.movedDialogMessage).toBeVisible({
@@ -379,6 +518,72 @@ async handleMovedDialog(): Promise<string> {
 
   return message;
 }
+async handleKnowledgeBasePopup(): Promise<void> {
 
+  try {
+
+    await this.knowledgePopup.waitFor({
+      state: 'visible',
+      timeout: 10000   
+    });
+
+    console.log('Knowledge Base popup appeared');
+
+    await this.acknowledgeButton.click();
+
+    console.log('Acknowledged the SI');
+
+    await expect(this.knowledgePopup).toBeHidden();
+
+  } catch {
+    console.log('Knowledge Base popup did not appear');
+  }
+}
+
+async approveAndSelectSITeam(): Promise<void> {
+  // Click Approve SI Acknowledgment
+  await expect(this.approveSIAckButton).toBeVisible({ timeout: 30000 });
+  await expect(this.approveSIAckButton).toBeEnabled({ timeout: 30000 });
+  await this.approveSIAckButton.click();
+
+  // Click SI Team
+  await expect(this.siTeamButton).toBeVisible({ timeout: 30000 });
+  await expect(this.siTeamButton).toBeEnabled({ timeout: 30000 });
+  await this.siTeamButton.click();
+}
+
+async uploadFile(locator: Locator, relativePath: string): Promise<string> {
+    const filePath = path.join(process.cwd(), relativePath);
+
+    // Safety check
+    if (!fs.existsSync(filePath)) {
+      throw new Error(`File not found: ${filePath}`);
+    }
+
+    await locator.setInputFiles(filePath);
+
+    // Optionally wait until some confirmation text appears, if available
+    // For simplicity, we just return the file name
+    return path.basename(filePath);
+  }
+
+  async fillBLNumberAndUploadFiles(manifestPath: string, draftBlPath: string): Promise<string> {
+    // Upload Manifest
+    const manifestFileName = await this.uploadFile(this.manifestUploadInput, manifestPath);
+
+    // Upload Draft BL
+    const draftBlFileName = await this.uploadFile(this.draftBlUploadInput, draftBlPath);
+
+    // Auto-generate BL Number
+    const blNumber = `BL${Math.floor(Math.random() * 9000 + 1000)}`; // BL1234 style
+    await this.blNumberInput.fill(blNumber);
+
+    // Click Save
+    await expect(this.saveButton).toBeVisible({ timeout: 30000 });
+    await expect(this.saveButton).toBeEnabled({ timeout: 30000 });
+    await this.saveButton.click();
+
+    return blNumber;
+  }
 
   }

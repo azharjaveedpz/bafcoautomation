@@ -46,6 +46,11 @@ export default defineConfig({
     browserName: 'chromium',
     viewport: null,
 
+ /* baseURL: process.env.BASE_URL,
+  headless: false,
+  browserName: 'webkit',   // Safari (WebKit)
+  viewport: null,*/
+
     // ACTION TIMEOUT (click, fill, upload)
     actionTimeout: 60_000,
 

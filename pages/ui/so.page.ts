@@ -397,10 +397,8 @@ async verifyEmailSentPopupAndClickOK(): Promise<string> {
 }
 async handleEmailResultPopup(): Promise<string> {
 
-  await this.popupMessageContent.waitFor({
-    state: 'visible',
-    timeout: 60000
-  });
+  await expect(this.popupMessageContent)
+    .toBeVisible({ timeout: 60000 });
 
   const message =
     (await this.popupMessageContent.textContent())?.trim() || '';
@@ -408,18 +406,12 @@ async handleEmailResultPopup(): Promise<string> {
   console.log(`Email Result Popup: ${message}`);
 
   expect(message).not.toBe('');
-  await this.emailSentOkButton.click();
 
-  console.log('Clicked OK button');
-  
+  await this.popupOkButton.click();   
 
-  // click OK of latest popup
-  await this.latestDialog
-    .getByRole('button', { name: 'OK' })
-    .click();
+  await expect(this.popupMessageContent).toBeHidden();
 
   return `Popup Message: ${message}`;
-  
 }
 
 

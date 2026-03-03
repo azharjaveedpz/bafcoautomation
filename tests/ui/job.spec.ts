@@ -56,7 +56,7 @@ Status: SUCCESS
       });
 
     });
-
+   
     // ================= VALIDATION FLOW =================
     await test.step('Validate Job Assigned table details', async () => {
 
@@ -80,7 +80,17 @@ Status: SUCCESS
       });
 
     });
+  // ================= Acknowledge =================
+await test.step('Handle Knowledge Base popup if appears', async () => {
 
+  await job.handleKnowledgeBasePopup();
+
+  await test.info().attach('Knowledge Popup Handling', {
+    body: 'Acknowledge popup handled if displayed',
+    contentType: 'text/plain',
+  });
+
+});
     // ================= HEADER VALIDATION =================
     await test.step('Validate Job Header details', async () => {
 

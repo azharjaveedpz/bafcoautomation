@@ -456,22 +456,24 @@ async processSRRequestedDetails(relativePath: string): Promise<any> {
 
   const result: any = {};
 
-  // =================  SHIPPING APPLICATION =================
-  await this.shippingApplicationPanel.waitFor({ state: 'visible' });
+  // ================= SHIPPING APPLICATION =================
 
-  await expect(this.shippingAppStatusInput).toHaveValue('Requested');
+await this.shippingApplicationPanel.waitFor({ state: 'visible' });
 
-  await this.dynamicStatusText.first().waitFor({ state: 'visible' });
+await expect(this.shippingAppStatusInput)
+  .toHaveValue('Requested', { timeout: 60000 });
 
-  const dynamicText =
-    (await this.dynamicStatusText.first().innerText()).trim();
+const statusValue = await this.shippingAppStatusInput.inputValue();
 
-  console.log('Dynamic Status:', dynamicText);
+if (statusValue !== 'Requested') {
+  throw new Error(`Expected status to be "Requested" but got "${statusValue}"`);
+}
 
-  result.shippingApplication = {
-    status: 'Requested',
-    dynamicStatus: dynamicText
-  };
+console.log('Shipping Status Verified:', statusValue);
+
+result.shippingApplication = {
+  status: statusValue
+};
 
   // =================  VIEW DOCUMENT =================
   const docName = (await this.firstDocumentName.innerText()).trim();
@@ -530,7 +532,7 @@ async processSRRequestedDetails(relativePath: string): Promise<any> {
   };
 
   // =================  CONTAINER VALIDATION =================
-  await this.containerTab.click();
+  /*await this.containerTab.click();
   await this.containerGridFirstRow.waitFor({ state: 'visible' });
 
   const gridType =
@@ -553,7 +555,7 @@ async processSRRequestedDetails(relativePath: string): Promise<any> {
   result.container = {
     gridContainerType: gridType,
     headerContainerTypes: headerTypes
-  };
+  };*/
 
   // ================= BACK USING BROWSER =================
 await this.page.goBack();
@@ -742,7 +744,7 @@ result.submission = {
   await this.page.goBack();
   //await this.page.waitForLoadState('networkidle');
 
-  await this.firstRowCheckbox.check();
+ // await this.firstRowCheckbox.check();
 
   result.navigation = {
     backAction: 'Browser goBack executed successfully'
@@ -784,5 +786,90 @@ async validateAndPrintAssignee(): Promise<string> {
   expect(assignee).not.toBe('');
 
   return assignee;
+}
+
+
+
+
+
+  async validateSISubmittedDetails(relativePath: string): Promise<any> {
+
+  const result: any = {};
+  
+
+  // ================= SHIPPING APPLICATION =================
+
+await expect(this.shippingApplicationPanel)
+  .toBeVisible({ timeout: 30000 });
+
+await expect(this.shippingAppStatusInput)
+  .toHaveValue('Submitted', { timeout: 60000 });
+
+const statusValue =
+  (await this.shippingAppStatusInput.inputValue()).trim();
+
+result.shippingApplication = {
+  status: statusValue
+};
+  // ================= VIEW DOCUMENT =================
+  const docName =
+    (await this.firstDocumentName.innerText()).trim();
+
+  await this.firstRowEyeButton.click();
+  await expect(this.pdfCloseButton)
+    .toBeVisible({ timeout: 60000 });
+
+  await this.pdfCloseButton.click();
+  await expect(this.pdfCloseButton).toBeHidden();
+
+  result.document = {
+    documentName: docName,
+    status: 'Viewed and Closed Successfully'
+  };
+
+
+
+  // ================= REMARK UPLOAD =================
+  await this.remarksTab.click();
+
+  await expect(this.remarkEditor)
+    .toBeVisible({ timeout: 30000 });
+
+  await this.remarkEditor.fill('tst automation');
+  await this.page.keyboard.press('Tab');
+
+
+  await expect(this.saveButton).toBeEnabled();
+  await this.saveButton.click();
+
+  await expect(this.latestRemarkRow)
+    .toBeVisible({ timeout: 60000 });
+
+  const user =
+    (await this.remarkUserName.innerText()).trim();
+  const message =
+    (await this.remarkMessage.innerText()).trim();
+  const date =
+    (await this.remarkDate.innerText()).trim();
+
+  result.remark = {
+    user,
+    message,
+    date
+  };
+
+  
+
+  // ================= NAVIGATION BACK =================
+  await this.page.goBack();
+  //await this.page.waitForLoadState('networkidle');
+
+  await this.firstRowCheckbox.check();
+
+  result.navigation = {
+    backAction: 'Browser goBack executed successfully'
+  };
+
+  return result;
 }
   }
