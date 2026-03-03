@@ -158,7 +158,7 @@ await test.step(
 );
 await test.step('Assign user and click Update', async () => {
 
-  await si.assignUserAndUpdate('Salman');
+  await si.assignUserAndUpdate('Gaffar');
 
   await test.info().attach('Assign User Action', {
     body: 'User selected and Update clicked successfully',
@@ -172,7 +172,7 @@ await test.step('Assign user and click Update', async () => {
  //----------------------------------------
 
 
- test.only('Validate Assigned SI and Status change from SI Inprogress to SI Submmitted ', async ({ page }) => {
+ test('Validate Assigned SI and Status change from SI Inprogress to SI Submmitted ', async ({ page }) => {
 
     const loginPage = new LoginPage(page);
     const sidashboard = new SIDashboardPage(page);
@@ -281,12 +281,122 @@ await test.step(
       contentType: 'application/json',
     });
 
-  }
-);
+  });
   
-
- });
 
 
 
   });
+
+//-----------------------------------------------------------------------
+  
+
+test.only('Validate SI Submmitted details ', async ({ page }) => {
+
+    const loginPage = new LoginPage(page);
+    const sidashboard = new SIDashboardPage(page);
+    const si = new SIPage(page);
+    const job = new JobPage(page);
+   
+
+    // ================= LOGIN FLOW =================
+    await test.step('Login flow', async () => {
+
+      await test.step('Login with valid user', async () => {
+
+        await loginPage.login(
+          loginData.si.username,
+          loginData.si.password
+        );
+
+        await loginPage.assertSILoginSuccess();
+      });
+
+    });
+
+    // ================= NAVIGATION FLOW =================
+    await test.step('Navigate to SI Submitted page', async () => {
+
+      await test.step('Open Dashboard and click SI Submitted', async () => {
+        await sidashboard.openSISubmitted();
+      
+        const summary = `
+Validation: SI Submitted Page URL
+Expected: /ShippingInstructionList/3
+Actual: ${page.url()}
+Status: SUCCESS
+`;
+
+        console.log(summary);
+
+        await test.info().attach('SI Submitted URL Validation', {
+          body: summary,
+          contentType: 'text/plain',
+        });
+
+      });
+
+    });
+ // ================= select checkbox =================
+  await test.step('Click first row checkbox and print row details',
+  async () => {
+
+    const rowData =
+      await si.clickCheckboxAndPrintRowDetails();
+
+    await test.info().attach('Row Details', {
+      body: JSON.stringify(rowData, null, 2),
+      contentType: 'application/json',
+    });
+
+  }
+);
+await test.step('Validate and print assignee ', async () => {
+
+  const assignee =
+    await si.validateAndPrintAssignee();
+
+  await test.info().attach('Assignee Details', {
+    body: JSON.stringify({ assignee }, null, 2),
+    contentType: 'application/json',
+  });
+
+});
+await test.step('Click first row Job ID and print Job ID',
+  async () => {
+
+    const jobId = await si.clickJobIdAndPrint();
+
+    await test.info().attach('Selected Job ID', {
+      body: `Selected Job ID: ${jobId}`,
+      contentType: 'text/plain',
+    });
+
+  }
+);
+
+  await test.step('Validate Job Details and Status', async () => {
+
+  const relativePath = 'test-data/sample.pdf'; 
+  const jobDetails = await si.validateSISubmittedDetails(relativePath);
+
+  await test.info().attach('Job Details', {
+    body: JSON.stringify(jobDetails, null, 2),
+    contentType: 'application/json',
+  });
+
+});
+
+
+
+  
+
+ });
+
+  
+ });
+
+
+
+
+  
