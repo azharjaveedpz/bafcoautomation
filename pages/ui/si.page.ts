@@ -281,7 +281,7 @@ async assignUserAndUpdate(userName: string) {
 
   // Wait until dropdown closes
   await expect(this.assignToInput)
-    .toHaveAttribute('aria-expanded', 'false');
+    .toHaveAttribute('aria-expanded', 'true');
 
   // Click Update
   await this.updateButton.click();

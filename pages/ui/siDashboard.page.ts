@@ -30,7 +30,11 @@ get SISubmitted(): Locator {
   return this.page.locator('a:has(h3:has-text("SI Submitted"))');
 }
 
-
+get manifestPendingCard(): Locator {
+  return this.page.locator('.card_info_sec', {
+    has: this.page.locator('h3:has-text("Manifest Pending")')
+  });
+}
 
 
   // ---------- Actions ----------
@@ -78,8 +82,18 @@ async openSISubmitted() {
     /ShippingInstructionList\/3/
   );
 }
+async clickManifestPendingCard() {
+ 
+  await this.manifestPendingCard.waitFor({ state: 'visible' });
 
+  await Promise.all([
 
+    this.manifestPendingCard.click(),
+  ]);
+
+  // Validate path only (ignore domain)
+  await expect(this.page).toHaveURL(/\/SIManifestStatusList\/1$/);
+}
 
 
   }
