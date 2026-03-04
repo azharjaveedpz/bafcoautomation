@@ -173,8 +173,8 @@ get approveSIAckButton(): Locator {
   }
 
   get saveButton(): Locator {
-    return this.page.locator('button:has-text("Save")');
-  }
+  return this.page.locator('button:has-text("Save")').first();
+}
 
 
   // ---------- Actions ----------

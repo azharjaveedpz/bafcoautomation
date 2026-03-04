@@ -32,10 +32,34 @@ export class LoginPage {
   }
   // ---------- Actions ----------
 
-  async open() {
+ /* async open() {
     await this.page.goto('/login');
+  }*/
+async open() {
+  let lastError;
+
+  for (let attempt = 0; attempt < 2; attempt++) {
+    try {
+      await this.page.goto('/login', { waitUntil: 'domcontentloaded' });
+      await this.page.locator('#email').waitFor({
+        state: 'visible',
+        timeout: 5000,
+      });
+
+      return; 
+    } catch (error) {
+      lastError = error;
+      console.log(`Attempt ${attempt + 1} failed. Retrying...`);
+
+      if (attempt < 1) {
+        await this.page.reload({ waitUntil: 'domcontentloaded' });
+      }
+    }
   }
 
+  
+  throw new Error('Login page failed to load after retry');
+}
   async enterUsername(username: string) {
     await this.usernameInput.fill(username);
   }

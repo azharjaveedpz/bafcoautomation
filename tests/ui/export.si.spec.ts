@@ -123,9 +123,10 @@ await test.info().attach('BL Created', {
   body: `Uploaded files and created BL Number: ${blNumber}`,
   contentType: 'text/plain',
 });
-    // ACKNOWLEDGE SI
-   // await exportSI.acknowledgeSI();
+    
   });
+//-------------------------------------------
+
 
   
 

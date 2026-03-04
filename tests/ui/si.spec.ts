@@ -172,7 +172,7 @@ await test.step('Assign user and click Update', async () => {
  //----------------------------------------
 
 
- test('Validate Assigned SI and Status change from SI Inprogress to SI Submmitted ', async ({ page }) => {
+ test.only('Validate Assigned SI and Status change from SI Inprogress to SI Submmitted ', async ({ page }) => {
 
     const loginPage = new LoginPage(page);
     const sidashboard = new SIDashboardPage(page);
@@ -291,7 +291,7 @@ await test.step(
 //-----------------------------------------------------------------------
   
 
-test.only('Validate SI Submmitted details ', async ({ page }) => {
+test('Validate SI Submmitted details ', async ({ page }) => {
 
     const loginPage = new LoginPage(page);
     const sidashboard = new SIDashboardPage(page);
